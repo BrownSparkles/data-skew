@@ -8,8 +8,14 @@ def getBiasedDataset(data: pd.DataFrame, biases: dict) -> pd.DataFrame:
     df = pd.DataFrame()
     for key in biases:
         df_bias = pd.DataFrame.from_dict(biases[key], orient='index', columns=['bias'])
-        df_data = pd.DataFrame(data.groupby(by=f'{key}').size(), columns=['Vol']).reset_index().set_index(key)
+        
+        value_list = []
+        for col in biases[key]:
+            value_list.append(col)
 
+        data = data[data[key].isin(value_list)]
+
+        df_data = pd.DataFrame(data.groupby(by=f'{key}').size(), columns=['Vol']).reset_index().set_index(key)
         df_processing = df_data.join(df_bias)
         df_processing["Ratio"] = df_processing["Vol"]/df_processing["bias"]
         df_processing["Output"] = df_processing["Ratio"].min() * df_processing["bias"]
